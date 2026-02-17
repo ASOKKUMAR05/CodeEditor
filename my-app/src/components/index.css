@@ -1,0 +1,16 @@
+.foreign-cursor {
+  border-left: 2px solid var(--cursor-color, #ff9800);
+  opacity: 0.8;
+}
+
+.foreign-cursor-label::after {
+  content: attr(data-user);
+  position: absolute;
+  background: var(--cursor-color, #ff9800);
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transform: translateY(-100%);
+  margin-left: 4px;
+}

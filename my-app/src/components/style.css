@@ -1,0 +1,31 @@
+body {
+  background-color: #0f1117;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+}
+
+.bg-dark-subtle {
+  background-color: #1a1d25 !important;
+}
+
+.bg-secondary-subtle {
+  background-color: #2a2d36 !important;
+}
+
+.CodeEditor {
+  background-color: #1e1e1e;
+  color: #cfcfcf;
+  font-family: "Fira Code", monospace;
+}
+
+.border-top {
+  border-top: 1px solid #2d2d2d !important;
+}
+
+.border-start {
+  border-left: 1px solid #2d2d2d !important;
+}
+
+.border-end {
+  border-right: 1px solid #2d2d2d !important;
+}
