@@ -55,7 +55,7 @@ export default function Login() {
                             marginBottom: "var(--spacing-sm)",
                         }}
                     >
-                        
+
                     </div>
                     <h1
                         className="gradient-text"
@@ -90,7 +90,7 @@ export default function Login() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@example.com"
+                            placeholder="Enter the Email"
                             required
                             style={{
                                 width: "100%",
