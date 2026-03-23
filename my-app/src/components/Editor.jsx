@@ -63,21 +63,21 @@ int main() {
     cpp: "",
   };
 
-  // Assign random username
+  // Set username from authenticated user
   useEffect(() => {
-    let stored = localStorage.getItem("username");
-    if (!stored) {
-      stored = "User" + Math.floor(1000 + Math.random() * 9000);
-      localStorage.setItem("username", stored);
+    if (user?.name) {
+      usernameRef.current = user.name;
+      socket.emit("join_user", user.name);
     }
-    usernameRef.current = stored;
-    socket.emit("join_user", stored);
-  }, []);
+  }, [user?.name]);
 
   // Join room and setup socket listeners
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !user?.name) return;
 
+    // Emit join_user first to ensure socket.username is set on the server
+    // before join_room is processed
+    socket.emit("join_user", user.name);
     socket.emit("join_room", roomId, user.id);
 
     // Handle join errors
@@ -94,87 +94,60 @@ int main() {
     socket.on("users_in_room", (usersObj) => {
       setUsers(Object.keys(usersObj));
 
-      Object.entries(usersObj).forEach(([user, data]) => {
-        addCursorCSS(user, data.color);
-
-        decorationsRef.current[user] = decorationsRef.current[user] || {
-          color: data.color,
-          ids: [],
-        };
+      Object.entries(usersObj).forEach(([uname, data]) => {
+        addCursorCSS(uname, data.color);
+        if (!decorationsRef.current[uname]) {
+          decorationsRef.current[uname] = { color: data.color, ids: [] };
+        } else {
+          decorationsRef.current[uname].color = data.color;
+        }
       });
     });
 
-    socket.on("user_joined", ({ user, color }) => {
-      setUsers((prev) => (prev.includes(user) ? prev : [...prev, user]));
+    socket.on("user_joined", ({ user: uname, color: joinColor }) => {
+      // Server doesn't always send color — fall back to existing or generate
+      const color =
+        joinColor ||
+        decorationsRef.current[uname]?.color ||
+        "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
 
-      addCursorCSS(user, color);
-      decorationsRef.current[user] = { color, ids: [] };
+      setUsers((prev) => (prev.includes(uname) ? prev : [...prev, uname]));
+      addCursorCSS(uname, color);
+      if (!decorationsRef.current[uname]) {
+        decorationsRef.current[uname] = { color, ids: [] };
+      }
     });
 
-    socket.on("user_left", ({ user }) => {
-      setUsers((prev) => prev.filter((u) => u !== user));
+    socket.on("user_left", ({ user: uname }) => {
+      setUsers((prev) => prev.filter((u) => u !== uname));
 
-      if (editorRef.current && decorationsRef.current[user]?.ids) {
-        editorRef.current.deltaDecorations(decorationsRef.current[user].ids, []);
+      if (editorRef.current && decorationsRef.current[uname]?.ids) {
+        editorRef.current.deltaDecorations(decorationsRef.current[uname].ids, []);
+      }
+      delete decorationsRef.current[uname];
+    });
+
+    // Cursor update — draw the collaborator's cursor in the editor
+    socket.on("cursor_update", ({ user: uname, cursor }) => {
+      if (!editorRef.current || !monacoRef.current) return;
+      if (uname === usernameRef.current) return;
+
+      // Ensure CSS is injected for this user
+      const color =
+        decorationsRef.current[uname]?.color ||
+        "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
+
+      if (!decorationsRef.current[uname]) {
+        decorationsRef.current[uname] = { color, ids: [] };
+        addCursorCSS(uname, color);
       }
 
-      delete decorationsRef.current[user];
+      clearTimeout(cursorTimers.current[uname]);
+      cursorTimers.current[uname] = setTimeout(() => {
+        applyDecoration(uname, cursor);
+      }, 30);
     });
 
-    // Cursor update
-    socket.on("cursor_update", ({ user, cursor }) => {
-      if (!editorRef.current || !monacoRef.current) return;
-      if (user === usernameRef.current) return;
-
-      const editor = editorRef.current;
-      const monaco = monacoRef.current;
-
-      clearTimeout(cursorTimers.current[user]);
-
-      cursorTimers.current[user] = setTimeout(() => {
-        const model = editor.getModel();
-        if (!model) return;
-
-        const maxLines = model.getLineCount();
-
-        const line = Math.min(cursor.position.lineNumber, maxLines);
-        const column = Math.min(
-          cursor.position.column,
-          model.getLineMaxColumn(line)
-        );
-
-        const color = decorationsRef.current[user]?.color || "#ff0000";
-
-        const range = cursor.selection
-          ? new monaco.Range(
-            Math.min(cursor.selection.startLineNumber, maxLines),
-            Math.min(
-              cursor.selection.startColumn,
-              model.getLineMaxColumn(line)
-            ),
-            Math.min(cursor.selection.endLineNumber, maxLines),
-            Math.min(
-              cursor.selection.endColumn,
-              model.getLineMaxColumn(line)
-            )
-          )
-          : new monaco.Range(line, column, line, column);
-
-        decorationsRef.current[user].ids = editor.deltaDecorations(
-          decorationsRef.current[user].ids || [],
-          [
-            {
-              range,
-              options: {
-                className: `cursor-${user}`,
-                inlineClassName: `cursor-${user}`,
-                afterContentClassName: `label-${user}`,
-              },
-            },
-          ]
-        );
-      }, 50);
-    });
 
     return () => {
       socket.off("code_sync");
@@ -190,30 +163,95 @@ int main() {
     setCode(templates[language]);
   }, [language]);
 
+  // Sanitize username to be a valid CSS class name
+  const sanitizeForClass = (name) =>
+    name.replace(/[^a-zA-Z0-9_-]/g, "_");
+
   // Inject CSS for each user's cursor + label
-  const addCursorCSS = (user, color) => {
-    if (document.getElementById(`cursor-style-${user}`)) return;
+  const addCursorCSS = (username, color) => {
+    const safeClass = sanitizeForClass(username);
+    const styleId = `cursor-style-${safeClass}`;
+    // Remove old style if color changed
+    const existing = document.getElementById(styleId);
+    if (existing) existing.remove();
 
     const style = document.createElement("style");
-    style.id = `cursor-style-${user}`;
-
+    style.id = styleId;
+    // Use inline-block label that works inside Monaco's span DOM
     style.innerHTML = `
-      .cursor-${user} {
-        border-left: 2px solid ${color} !important;
-        border-radius: 2px;
+      .cursor-${safeClass} {
+        border-left: 3px solid ${color} !important;
+        margin-left: -1px;
       }
-      .label-${user}::after {
-        content: "${user}";
+      .cursor-line-${safeClass} {
+        background: ${color}33 !important;
+      }
+      /* Label rendered as inline badge BEFORE the cursor span */
+      .label-${safeClass}::before {
+        content: "${username.replace(/"/g, "'")}";
+        display: inline-block;
         background: ${color};
-        color: white;
-        font-size: 10px;
-        padding: 2px 4px;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 0px 4px;
         border-radius: 3px;
-        margin-left: 4px;
+        white-space: nowrap;
+        vertical-align: super;
+        line-height: 1.4;
+        margin-right: 2px;
+        opacity: 0.95;
       }
     `;
-
     document.head.appendChild(style);
+  };
+
+  // Apply or update Monaco decoration for a remote collaborator
+  const applyDecoration = (username, cursor) => {
+    if (!editorRef.current || !monacoRef.current) return;
+    const safeClass = sanitizeForClass(username);
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    const model = editor.getModel();
+    if (!model) return;
+
+    const maxLines = model.getLineCount();
+    const line = Math.max(1, Math.min(cursor.position.lineNumber, maxLines));
+    const column = Math.max(1, Math.min(
+      cursor.position.column,
+      model.getLineMaxColumn(line)
+    ));
+
+    const range = cursor.selection &&
+      (cursor.selection.startLineNumber !== cursor.selection.endLineNumber ||
+       cursor.selection.startColumn !== cursor.selection.endColumn)
+      ? new monaco.Range(
+          Math.max(1, Math.min(cursor.selection.startLineNumber, maxLines)),
+          Math.max(1, cursor.selection.startColumn),
+          Math.max(1, Math.min(cursor.selection.endLineNumber, maxLines)),
+          Math.max(1, cursor.selection.endColumn)
+        )
+      : new monaco.Range(line, column, line, column + 1);
+
+    if (!decorationsRef.current[username]) {
+      decorationsRef.current[username] = { ids: [] };
+    }
+
+    decorationsRef.current[username].ids = editor.deltaDecorations(
+      decorationsRef.current[username].ids || [],
+      [
+        {
+          range,
+          options: {
+            className: `cursor-${safeClass}`,
+            inlineClassName: `cursor-line-${safeClass}`,
+            beforeContentClassName: `label-${safeClass}`,
+            hoverMessage: { value: `**${username}**` },
+            zIndex: 100,
+          },
+        },
+      ]
+    );
   };
 
   
@@ -241,34 +279,52 @@ int main() {
     }
   };
 
-  // Run code using Piston API
+  // Judge0 CE language IDs
+  const judge0LangIds = {
+    python: 71,     // Python 3.8
+    javascript: 63, // Node.js 12
+    java: 62,       // OpenJDK 13
+    c: 50,          // GCC 9.2 C
+    cpp: 54,        // GCC 9.2 C++
+  };
+
+  // Run code via our backend proxy (avoids CORS + API key issues)
   const runCode = async () => {
     setLoading(true);
     setOutput("Running...");
 
+    const languageId = judge0LangIds[language];
+    if (!languageId) {
+      setOutput(`Unsupported language: ${language}`);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+      const response = await fetch(`${BACKEND_URL}/api/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          language,
-          version: "*",
-          files: [{ content: code }],
-        }),
+        body: JSON.stringify({ source_code: code, language_id: languageId }),
       });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Server error ${response.status}: ${errText}`);
+      }
 
       const data = await response.json();
 
       const result =
-        data?.run?.output ||
-        data?.run?.stdout ||
-        data?.run?.stderr ||
+        data.stdout ||
+        (data.stderr ? `Runtime Error:\n${data.stderr}` : null) ||
+        (data.compile_output ? `Compile Error:\n${data.compile_output}` : null) ||
+        (data.status?.description ? `Status: ${data.status.description}` : null) ||
         "No output";
 
       setOutput(result);
     } catch (err) {
       console.error(err);
-      setOutput("Error running code!");
+      setOutput(`Error running code: ${err.message}`);
     }
 
     setLoading(false);

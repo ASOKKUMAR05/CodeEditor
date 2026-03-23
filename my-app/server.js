@@ -143,7 +143,7 @@ io.on("connection", (socket) => {
       }
 
       socket.emit("users_in_room", roomsUsers[roomId]);
-      socket.to(roomId).emit("user_joined", { user: socket.username });
+      socket.to(roomId).emit("user_joined", { user: socket.username, color: roomsUsers[roomId][socket.username].color });
 
       // Load existing code
       let existing = await Code.findOne({ roomId });
@@ -376,6 +376,39 @@ app.get("/api/auth/verify", authMiddleware, async (req, res) => {
 });
 
 // ---------------------- REST API ----------------------
+
+// ---------------------- Code Execution (Judge0 CE proxy) ----------------------
+
+app.post("/api/run", async (req, res) => {
+  try {
+    const { source_code, language_id, stdin = "" } = req.body;
+
+    if (!source_code || !language_id) {
+      return res.status(400).json({ error: "source_code and language_id are required" });
+    }
+
+    // Forward to Judge0 CE public instance
+    const judge0Res = await fetch(
+      "https://ce.judge0.com/submissions?base64_encoded=false&wait=true",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source_code, language_id, stdin }),
+      }
+    );
+
+    if (!judge0Res.ok) {
+      const errText = await judge0Res.text();
+      return res.status(502).json({ error: `Judge0 error: ${errText}` });
+    }
+
+    const data = await judge0Res.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Code execution error:", error);
+    res.status(500).json({ error: "Code execution failed" });
+  }
+});
 
 // Root
 app.get("/", (req, res) =>
