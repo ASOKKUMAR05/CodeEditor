@@ -5,17 +5,20 @@ import WorkspaceManager from "./WorkspaceManager";
 import CodeEditor from "./Editor";
 import Chat from "./Chat";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 export default function Layout() {
   const [workspaces, setWorkspaces] = useState([]);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeMobileTab, setActiveMobileTab] = useState("editor"); // 'workspaces', 'editor', 'chat'
 
   const navigate = useNavigate();
   const { user, logout, getAuthHeaders } = useAuth();
 
   const fetchWorkspaces = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/workspaces", {
+      const res = await fetch(`${BACKEND_URL}/api/workspaces`, {
         headers: getAuthHeaders(),
       });
       const data = await res.json();
@@ -39,7 +42,7 @@ export default function Layout() {
 
   const runMigration = async () => {
     try {
-      await fetch("http://localhost:5000/api/workspaces/migrate", {
+      await fetch(`${BACKEND_URL}/api/workspaces/migrate`, {
         method: "POST",
         headers: getAuthHeaders(),
       });
@@ -51,7 +54,7 @@ export default function Layout() {
   };
 
   const handleCreateWorkspace = async (name) => {
-    const res = await fetch("http://localhost:5000/api/workspaces", {
+    const res = await fetch(`${BACKEND_URL}/api/workspaces`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({ name }),
@@ -65,7 +68,7 @@ export default function Layout() {
   };
 
   const handleDeleteWorkspace = async (id) => {
-    const res = await fetch(`http://localhost:5000/api/workspaces/${id}`, {
+    const res = await fetch(`${BACKEND_URL}/api/workspaces/${id}`, {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
@@ -89,7 +92,7 @@ export default function Layout() {
   };
 
   const handleRenameWorkspace = async (id, name) => {
-    const res = await fetch(`http://localhost:5000/api/workspaces/${id}`, {
+    const res = await fetch(`${BACKEND_URL}/api/workspaces/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
@@ -167,7 +170,6 @@ export default function Layout() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-          <span style={{ fontSize: "1.5rem" }}>💻</span>
           <div>
             <h2
               className="gradient-text"
@@ -245,39 +247,24 @@ export default function Layout() {
               gap: "var(--spacing-xs)",
             }}
           >
-            <span>🚪</span>
             <span>Logout</span>
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          flex: 1,
-          overflow: "hidden",
-        }}
-      >
+      <div className="layout-container">
         {/* Workspace Sidebar */}
         <div
-          className="glass-strong"
-          style={{
-            width: "280px",
-            borderRight: "1px solid var(--border-primary)",
-            display: "flex",
-            flexDirection: "column",
-            overflowY: "auto",
-            boxShadow: "var(--shadow-lg)",
-            position: "relative",
-            zIndex: 10,
-          }}
+          className={`sidebar-left glass-strong ${activeMobileTab !== 'workspaces' ? 'hide-on-mobile' : ''}`}
         >
           <WorkspaceManager
             workspaces={workspaces}
             active={activeWorkspace}
-            onSelect={setActiveWorkspace}
+            onSelect={(ws) => {
+              setActiveWorkspace(ws);
+              if (window.innerWidth <= 768) setActiveMobileTab('editor'); // auto switch back to editor on mobile
+            }}
             onCreate={handleCreateWorkspace}
             onDelete={handleDeleteWorkspace}
             onRename={handleRenameWorkspace}
@@ -287,33 +274,42 @@ export default function Layout() {
 
         {/* Code Editor */}
         <div
-          style={{
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            position: "relative",
-          }}
+          className={`editor-area ${activeMobileTab !== 'editor' ? 'hide-on-mobile' : ''}`}
         >
           <CodeEditor roomId={activeWorkspace?.roomId || "default-room"} />
         </div>
 
         {/* Chat Sidebar */}
         <div
-          className="glass-strong"
-          style={{
-            width: "340px",
-            borderLeft: "1px solid var(--border-primary)",
-            display: "flex",
-            flexDirection: "column",
-            overflowY: "auto",
-            boxShadow: "var(--shadow-lg)",
-            position: "relative",
-            zIndex: 10,
-          }}
+          className={`sidebar-right glass-strong ${activeMobileTab !== 'chat' ? 'hide-on-mobile' : ''}`}
         >
           <Chat roomId={activeWorkspace?.roomId || "default-room"} />
         </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      <div className="mobile-nav">
+        <button
+          className={`mobile-nav-btn ${activeMobileTab === 'workspaces' ? 'active' : ''}`}
+          onClick={() => setActiveMobileTab('workspaces')}
+        >
+          <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>[=]</span>
+          <span>Spaces</span>
+        </button>
+        <button
+          className={`mobile-nav-btn ${activeMobileTab === 'editor' ? 'active' : ''}`}
+          onClick={() => setActiveMobileTab('editor')}
+        >
+          <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>[&lt;&gt;]</span>
+          <span>Code</span>
+        </button>
+        <button
+          className={`mobile-nav-btn ${activeMobileTab === 'chat' ? 'active' : ''}`}
+          onClick={() => setActiveMobileTab('chat')}
+        >
+          <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>[&quot;&quot;]</span>
+          <span>Chat</span>
+        </button>
       </div>
     </div>
   );

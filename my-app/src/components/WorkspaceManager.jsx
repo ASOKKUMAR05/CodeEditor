@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 export default function WorkspaceManager({
   workspaces,
   active,
@@ -77,7 +79,7 @@ export default function WorkspaceManager({
     setJoinSuccess("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/workspaces/join", {
+      const res = await fetch(`${BACKEND_URL}/api/workspaces/join`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ roomId: joinRoomId }),
@@ -133,6 +135,7 @@ export default function WorkspaceManager({
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           gap: "var(--spacing-sm)",
           marginBottom: "var(--spacing-lg)",
         }}
@@ -167,7 +170,7 @@ export default function WorkspaceManager({
           }}
           className="hover-lift"
         >
-          {loading ? <div className="spinner"></div> : "+"}
+          {loading ? <div className="spinner"></div> : "Create"}
         </button>
       </div>
 
@@ -199,12 +202,13 @@ export default function WorkspaceManager({
       >
         <div style={{ marginBottom: "var(--spacing-sm)" }}>
           <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)" }}>
-            🔗 Join a Room
+            Join a Room
           </span>
         </div>
         <div
           style={{
             display: "flex",
+            alignItems: "center",
             gap: "var(--spacing-sm)",
           }}
         >
@@ -282,11 +286,8 @@ export default function WorkspaceManager({
             fontSize: "0.9rem",
           }}
         >
-          <div style={{ fontSize: "2rem", marginBottom: "var(--spacing-sm)" }}>
-            📁
-          </div>
-          <p>No workspaces yet</p>
-          <p style={{ fontSize: "0.8rem" }}>Create one to get started!</p>
+          <p style={{ fontWeight: 600 }}>No workspaces yet</p>
+          <p style={{ fontSize: "0.8rem", marginTop: "4px" }}>Create one to get started!</p>
         </div>
       ) : (
         <>
@@ -303,7 +304,7 @@ export default function WorkspaceManager({
             >
               <div style={{ marginBottom: "var(--spacing-sm)" }}>
                 <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.8)", marginBottom: "4px" }}>
-                  📤 Share Room ID
+                  Share Room ID
                 </div>
                 <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "white", marginBottom: "var(--spacing-xs)" }}>
                   {active.name}
@@ -354,20 +355,14 @@ export default function WorkspaceManager({
                   title="Copy Room ID"
                 >
                   {copiedRoomId === active.roomId ? (
-                    <>
-                      <span>✓</span>
-                      <span>Copied</span>
-                    </>
+                    <span>Copied</span>
                   ) : (
-                    <>
-                      <span>📋</span>
-                      <span>Copy</span>
-                    </>
+                    <span>Copy</span>
                   )}
                 </button>
               </div>
               <div style={{ fontSize: "0.7rem", color: "rgba(255, 255, 255, 0.7)", marginTop: "var(--spacing-xs)" }}>
-                👥 {active.members?.length || 0} member{active.members?.length !== 1 ? 's' : ''} in this room
+                {active.members?.length || 0} member{active.members?.length !== 1 ? 's' : ''} in this room
               </div>
             </div>
           )}
@@ -447,9 +442,6 @@ export default function WorkspaceManager({
                       onClick={() => onSelect(ws)}
                       style={{ flex: 1, display: "flex", alignItems: "center", gap: "var(--spacing-sm)" }}
                     >
-                      <span style={{ fontSize: "1.2rem" }}>
-                        {active?._id === ws._id ? "📂" : "📁"}
-                      </span>
                       <div>
                         <div
                           style={{
@@ -471,7 +463,7 @@ export default function WorkspaceManager({
                           }}
                         >
                           {active?._id === ws._id && <span>Active • </span>}
-                          <span>👥 {ws.members?.length || 0} member{ws.members?.length !== 1 ? 's' : ''}</span>
+                          <span>{ws.members?.length || 0} member{ws.members?.length !== 1 ? 's' : ''}</span>
                         </div>
                       </div>
                     </div>
@@ -524,7 +516,7 @@ export default function WorkspaceManager({
                             className="hover-lift"
                             title="Copy Room ID"
                           >
-                            {copiedRoomId === ws.roomId ? "✓" : "📋"}
+                            {copiedRoomId === ws.roomId ? "Copied" : "Copy"}
                           </button>
                         </div>
                       </div>
@@ -558,11 +550,9 @@ export default function WorkspaceManager({
                             ? "rgba(255, 255, 255, 0.2)"
                             : "var(--bg-secondary)",
                           color: active?._id === ws._id ? "white" : "var(--text-secondary)",
-                          padding: "var(--spacing-xs)",
+                          padding: "var(--spacing-xs) var(--spacing-sm)",
                           borderRadius: "var(--radius-sm)",
-                          fontSize: "0.9rem",
-                          width: "32px",
-                          height: "32px",
+                          fontSize: "0.85rem",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -570,7 +560,7 @@ export default function WorkspaceManager({
                         className="hover-lift"
                         title="Rename"
                       >
-                        ✏️
+                        Edit
                       </button>
                       <button
                         onClick={() => handleDelete(ws)}
@@ -579,11 +569,9 @@ export default function WorkspaceManager({
                             ? "rgba(239, 68, 68, 0.3)"
                             : "rgba(239, 68, 68, 0.1)",
                           color: "#ef4444",
-                          padding: "var(--spacing-xs)",
+                          padding: "var(--spacing-xs) var(--spacing-sm)",
                           borderRadius: "var(--radius-sm)",
-                          fontSize: "0.9rem",
-                          width: "32px",
-                          height: "32px",
+                          fontSize: "0.85rem",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -591,7 +579,7 @@ export default function WorkspaceManager({
                         className="hover-lift"
                         title={ws.ownerId === user?.id ? "Delete" : "Leave"}
                       >
-                        {ws.ownerId === user?.id ? "🗑️" : "🚪"}
+                        {ws.ownerId === user?.id ? "Delete" : "Leave"}
                       </button>
                     </div>
                   </div>

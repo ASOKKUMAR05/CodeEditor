@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 
-const socket = io("http://localhost:5000");
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const socket = io(BACKEND_URL);
 
 export default function Chat({ roomId }) {
   const [username, setUsername] = useState("");
@@ -13,14 +14,13 @@ export default function Chat({ roomId }) {
   const { user } = useAuth();
   const bottomRef = useRef();
 
-  // Join user once
+  // Use actual username
   useEffect(() => {
-    const user = localStorage.getItem("username") || "User" + Date.now();
-    localStorage.setItem("username", user);
-
-    setUsername(user);
-    socket.emit("join_user", user);
-  }, []);
+    if (user?.name) {
+      setUsername(user.name);
+      socket.emit("join_user", user.name);
+    }
+  }, [user]);
 
   // Join room and listen for chat events
   useEffect(() => {
@@ -149,9 +149,6 @@ export default function Chat({ roomId }) {
               color: "var(--text-muted)",
             }}
           >
-            <div style={{ fontSize: "2.5rem", marginBottom: "var(--spacing-sm)" }}>
-              💬
-            </div>
             <p style={{ fontSize: "0.95rem" }}>No messages yet</p>
             <p style={{ fontSize: "0.85rem" }}>Start the conversation!</p>
           </div>

@@ -21,26 +21,26 @@ export default function Signup() {
 
         // Validation
         if (password !== confirmPassword) {
-            console.warn("⚠️ Passwords do not match");
+            console.warn(" Passwords do not match");
             setError("Passwords do not match");
             return;
         }
 
         if (password.length < 6) {
-            console.warn("⚠️ Password too short");
+            console.warn(" Password too short");
             setError("Password must be at least 6 characters");
             return;
         }
 
         setLoading(true);
-        console.log("🔄 Starting registration process...");
+        console.log(" Starting registration process...");
 
         try {
             const result = await register(name, email, password);
-            console.log("✅ Registration completed, navigating to editor...");
+            console.log(" Registration completed, navigating to editor...");
             navigate("/editor");
         } catch (err) {
-            console.error("❌ Registration form error:", err);
+            console.error(" Registration form error:", err);
             setError(err.message || "Registration failed. Please try again.");
         } finally {
             setLoading(false);
@@ -76,7 +76,7 @@ export default function Signup() {
                             marginBottom: "var(--spacing-sm)",
                         }}
                     >
-                        🚀
+                        
                     </div>
                     <h1
                         className="gradient-text"
@@ -111,7 +111,7 @@ export default function Signup() {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="John Doe"
+                            placeholder=""
                             required
                             style={{
                                 width: "100%",
@@ -231,7 +231,7 @@ export default function Signup() {
                                 gap: "var(--spacing-sm)",
                             }}
                         >
-                            <span>⚠️</span>
+                            <span></span>
                             <span>{error}</span>
                         </div>
                     )}

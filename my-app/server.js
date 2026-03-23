@@ -11,9 +11,13 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : ["http://localhost:5173", "http://localhost:5174"];
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -22,20 +26,19 @@ app.use(express.json());
 
 const server = http.createServer(app);
 
-// JWT Secret
+
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
-// ---------------------- MongoDB Setup ----------------------
+
 const mongoURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/worktech";
 
 mongoose
   .connect(mongoURI)
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .then(() => console.log(" Connected to MongoDB"))
+  .catch((err) => console.error(" MongoDB connection error:", err));
 
-// ---------------------- Schemas ----------------------
 
-// User Schema
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -43,7 +46,7 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Hash password before saving
+
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
@@ -51,7 +54,7 @@ userSchema.pre("save", async function () {
 
 const User = mongoose.model("User", userSchema);
 
-// Chat messages per room
+
 const chatSchema = new mongoose.Schema({
   roomId: String,
   user: String,
@@ -88,7 +91,7 @@ const Workspace = mongoose.model("Workspace", workspaceSchema);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -200,7 +203,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`❌ User disconnected: ${socket.username || socket.id}`);
+    console.log(` User disconnected: ${socket.username || socket.id}`);
 
     for (const roomId in roomsUsers) {
       if (roomsUsers[roomId][socket.username]) {
@@ -263,28 +266,28 @@ const roomAuthMiddleware = async (req, res, next) => {
 // Register
 app.post("/api/auth/register", async (req, res) => {
   try {
-    console.log("📝 Registration request received");
+    console.log(" Registration request received");
     const { name, email, password } = req.body;
-    console.log("📝 Registration data:", { name, email, passwordLength: password?.length });
+    console.log(" Registration data:", { name, email, passwordLength: password?.length });
 
     if (!name || !email || !password) {
-      console.warn("⚠️ Missing required fields");
+      console.warn(" Missing required fields");
       return res.status(400).json({ error: "All fields are required" });
     }
 
     // Check if user already exists
-    console.log("🔍 Checking if user exists:", email);
+    console.log(" Checking if user exists:", email);
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.warn("⚠️ Email already registered:", email);
+      console.warn(" Email already registered:", email);
       return res.status(400).json({ error: "Email already registered" });
     }
 
     // Create new user
-    console.log("✅ Creating new user:", email);
+    console.log(" Creating new user:", email);
     const user = new User({ name, email, password });
     await user.save();
-    console.log("✅ User saved to database:", user._id);
+    console.log(" User saved to database:", user._id);
 
     // Generate token
     const token = jwt.sign(
@@ -292,7 +295,7 @@ app.post("/api/auth/register", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "7d" }
     );
-    console.log("✅ JWT token generated for user:", user._id);
+    console.log(" JWT token generated for user:", user._id);
 
     const response = {
       token,
@@ -302,10 +305,10 @@ app.post("/api/auth/register", async (req, res) => {
         email: user.email,
       },
     };
-    console.log("✅ Sending success response");
+    console.log(" Sending success response");
     res.json(response);
   } catch (error) {
-    console.error("❌ Register error:", error);
+    console.error(" Register error:", error);
     res.status(500).json({ error: "Registration failed" });
   }
 });

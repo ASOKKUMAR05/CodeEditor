@@ -55,7 +55,7 @@ export default function Login() {
                             marginBottom: "var(--spacing-sm)",
                         }}
                     >
-                        💻
+                        
                     </div>
                     <h1
                         className="gradient-text"
@@ -150,7 +150,7 @@ export default function Login() {
                                 gap: "var(--spacing-sm)",
                             }}
                         >
-                            <span>⚠️</span>
+                            <span></span>
                             <span>{error}</span>
                         </div>
                     )}

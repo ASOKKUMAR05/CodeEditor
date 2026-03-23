@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -29,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/verify", {
+            const response = await fetch(`${BACKEND_URL}/api/auth/verify`, {
                 headers: {
                     Authorization: `Bearer ${storedToken}`,
                 },
@@ -56,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         console.log("🔵 Starting login for:", email);
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/login", {
+            const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -88,7 +90,7 @@ export const AuthProvider = ({ children }) => {
         console.log("🔵 Starting registration for:", email);
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/register", {
+            const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password }),

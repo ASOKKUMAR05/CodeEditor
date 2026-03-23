@@ -3,7 +3,8 @@ import Editor from "@monaco-editor/react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 
-const socket = io("http://localhost:5000", { transports: ["websocket"] });
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const socket = io(BACKEND_URL, { transports: ["websocket"] });
 
 const CodeEditor = ({ roomId = "default-room" }) => {
   const [language, setLanguage] = useState("python");
@@ -215,7 +216,7 @@ int main() {
     document.head.appendChild(style);
   };
 
-  // Editor mount
+  
   const handleEditorMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;

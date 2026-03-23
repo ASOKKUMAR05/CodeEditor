@@ -4,53 +4,53 @@
 /* CSS Custom Properties - Premium Dark Theme */
 :root {
   /* Primary Colors */
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #141824;
-  --bg-tertiary: #1a1f2e;
-  --bg-elevated: #1f2937;
-  
+  --bg-primary: #000000;
+  --bg-secondary: #0f0f0f;
+  --bg-tertiary: #1a1a1a;
+  --bg-elevated: #262626;
+
   /* Accent Colors */
-  --accent-primary: #667eea;
-  --accent-secondary: #764ba2;
-  --accent-cyan: #06b6d4;
+  --accent-primary: #3b82f6;
+  --accent-secondary: #2563eb;
+  --accent-cyan: #0ea5e9;
   --accent-purple: #8b5cf6;
   --accent-pink: #ec4899;
-  --accent-yellow: #fbbf24;
-  
+  --accent-yellow: #eab308;
+
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
   --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
-  
+
   /* Text Colors */
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
+  --text-primary: #ffffff;
+  --text-secondary: #e5e7eb;
+  --text-muted: #a1a1aa;
   --text-accent: #60a5fa;
-  
+
   /* Border Colors */
-  --border-primary: #2d3748;
-  --border-secondary: #374151;
-  --border-accent: #4b5563;
-  
+  --border-primary: #333333;
+  --border-secondary: #444444;
+  --border-accent: #555555;
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
   --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
-  
+
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-base: 250ms ease-in-out;
   --transition-slow: 350ms ease-in-out;
-  
+
   /* Border Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
-  
+
   /* Spacing */
   --spacing-xs: 0.5rem;
   --spacing-sm: 0.75rem;
@@ -67,7 +67,8 @@
 }
 
 /* Base Styles */
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -88,18 +89,40 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   line-height: 1.2;
   color: var(--text-primary);
 }
 
-h1 { font-size: 2.5rem; }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.75rem; }
-h4 { font-size: 1.5rem; }
-h5 { font-size: 1.25rem; }
-h6 { font-size: 1rem; }
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+h4 {
+  font-size: 1.5rem;
+}
+
+h5 {
+  font-size: 1.25rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
 
 /* Links */
 a {
@@ -142,14 +165,14 @@ a:hover {
 
 /* Glassmorphism Effect */
 .glass {
-  background: rgba(26, 31, 46, 0.7);
+  background: rgba(15, 15, 15, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-strong {
-  background: rgba(26, 31, 46, 0.85);
+  background: rgba(15, 15, 15, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -161,6 +184,7 @@ a:hover {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -172,6 +196,7 @@ a:hover {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -179,9 +204,12 @@ a:hover {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }
@@ -191,6 +219,7 @@ a:hover {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -200,6 +229,7 @@ a:hover {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
@@ -263,7 +293,8 @@ button:disabled {
 }
 
 /* Input Base Styles */
-input, textarea {
+input,
+textarea {
   font-family: 'Inter', sans-serif;
   background: var(--bg-elevated);
   color: var(--text-primary);
@@ -274,12 +305,14 @@ input, textarea {
   outline: none;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--text-muted);
 }
 
@@ -325,4 +358,109 @@ input::placeholder, textarea::placeholder {
   width: 40px;
   height: 40px;
   border-width: 3px;
+}
+
+/* Layout Utility Classes for Responsiveness */
+.layout-container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+.sidebar-left {
+  width: 320px;
+  border-right: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 10;
+  background: var(--bg-secondary);
+}
+
+.editor-area {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar-right {
+  width: 380px;
+  border-left: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 10;
+  background: var(--bg-secondary);
+}
+
+.mobile-nav {
+  display: none;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
+  padding: var(--spacing-sm) 0;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 50;
+}
+
+.mobile-nav-btn {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-nav-btn.active {
+  color: var(--accent-primary);
+  background: var(--bg-elevated);
+}
+
+@media (max-width: 992px) {
+  .sidebar-right {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+
+  .sidebar-left {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .editor-area {
+    width: 100%;
+  }
+
+  .sidebar-right {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border-primary);
+  }
+
+  .mobile-nav {
+    display: flex;
+  }
+
+  /* Hide panes based on active tab class applied via JS */
+  .hide-on-mobile {
+    display: none !important;
+  }
 }
